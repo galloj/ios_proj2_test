@@ -32,8 +32,7 @@ def test(text):
 	testFailed = False
 	testRunning = True
 	testCnt+=1
-	print("[ " + Fore.BLUE + "T" + Fore.WHITE + " ] " + text)
-	note("Test for: " + text)
+	print("[ " + Fore.BLUE + "T" + Fore.WHITE + " ] " + "Test for: " + text)
 	preclean()
 
 def testEnd():
@@ -228,6 +227,6 @@ note("Test script has finnished")
 note(f"Total of {testCnt} tests were run, {failedCnt} failed")
 
 if allPassed:
-	print(Fore.GREEN + "All test have passed!!! :)" + Fore.WHITE)
+	print(Fore.GREEN + "All tests have passed!!! :)" + Fore.WHITE)
 else:
 	print(Fore.RED + "Some tests have failed :(" + Fore.WHITE)
