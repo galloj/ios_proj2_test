@@ -7,6 +7,7 @@ import os
 allPassed = True
 
 testCnt = 0
+failedCnt = 0
 testFailed = False
 testRunning = False
 
@@ -31,6 +32,7 @@ def test(text):
 	testFailed = False
 	testRunning = True
 	testCnt+=1
+	print("[ " + Fore.BLUE + "T" + Fore.WHITE + " ] " + text)
 	note("Test for: " + text)
 	preclean()
 
@@ -40,6 +42,7 @@ def testEnd():
 	if testRunning:
 		if testFailed:
 			err("Test failed")
+			failedCnt += 1
 		else:
 			succ("Test passed")
 	testRunning = False
@@ -159,7 +162,7 @@ processSucess(2, 1, 100, 100)
 
 testEnd()
 note("Test script has finnished")
-note(f"Total of {testCnt} tests were run")
+note(f"Total of {testCnt} tests were run, {failedCnt} failed")
 
 if allPassed:
 	print(Fore.GREEN + "All test have passed!!! :)" + Fore.WHITE)
