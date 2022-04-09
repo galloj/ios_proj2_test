@@ -79,8 +79,30 @@ def processFail(params):
 	if proc.returncode != 1:
 		err("Wrong return code, should be set to 1")
 
-def processSucess(params):
-	pass
+def processSucess(NO, NH, TI, TB):
+	proc = subprocess.Popen(["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+	try:
+		outs, errs = proc.communicate(timeout=5)
+		if outs != "":
+			err("There shouldnt be any text on stdout")
+		if errs != "":
+			err("There shouldnt be any errors on stderr")
+	except subprocess.TimeoutExpired:
+		proc.kill()
+		err("Process timed out")
+		postclean()
+		return
+	if not exists("proj2.out"):
+		err("Missing file proj2.out")
+	else:
+		dataFile = open("proj2.out")
+		for line in dataFile.readlines():
+			pass
+		dataFile.close()
+	proc.wait()
+	postclean()
+	if proc.returncode != 0:
+		err("Wrong return code, should be set to 0")
 
 test("Makefile")
 if not exists("./Makefile"):
@@ -131,6 +153,9 @@ test("TB not a number")
 processFail(["1", "1", "1", "1a"])
 test("Missing TB")
 processFail(["1", "1", "1", ""])
+
+test("Basic test (2, 1, 100, 100)")
+processSucess(2, 1, 100, 100)
 
 testEnd()
 note("Test script has finnished")
