@@ -39,6 +39,7 @@ def test(text):
 def testEnd():
 	global testFailed
 	global testRunning
+	global failedCnt
 	if testRunning:
 		if testFailed:
 			err("Test failed")
@@ -99,8 +100,38 @@ def processSucess(NO, NH, TI, TB):
 		err("Missing file proj2.out")
 	else:
 		dataFile = open("proj2.out")
+		lineCnt = 0
+		oarr = [0]*NO
+		harr = [0]*NH
 		for line in dataFile.readlines():
-			pass
+			fields = line.split(": ")
+			if len(fields) != 3:
+				err("Wrong format of line (expected \"xxx: xxx: xxx\") got:")
+				note(line)
+				break
+			lineCnt += 1
+			if fields[0] != str(lineCnt):
+				err(f"Wrong id of line, expected {lineCnt}")
+				note("Line: " + line)
+				break
+			if len(fields[1].split(" ")) != 2:
+				err(f"Expected atom type and id (ex. \"H 1\") got \"{fields[1]}\"")
+				note("Line: " + line)
+				break
+			type, id = fields[1].split(" ")
+			arr=None
+			if type == "O":
+				arr = oarr
+			elif type == "H":
+				arr = harr
+			else:
+				err(f"Unknown atom type \"{type}\" (expected \"O\" or \"H\")")
+				note("Line: " + line)
+				continue
+			if int(id)>len(arr):
+				err(f"Too big id of atom (max is {len(arr)}, found {int(id)})")
+				note("Line: " + line)
+				continue
 		dataFile.close()
 	proc.wait()
 	postclean()
