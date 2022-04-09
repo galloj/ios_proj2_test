@@ -6,6 +6,8 @@ import os
 
 allPassed = True
 
+testCnt = 0
+
 def err(text):
 	global allPassed
 	allPassed = False
@@ -18,6 +20,8 @@ def succ(text):
 	print("[" + Fore.GREEN + "OK" + Fore.WHITE + " ] " + text);
 
 def test(text):
+	global testCnt
+	testCnt+=1
 	note("Test for: " + text)
 
 note("Test script has started")
@@ -78,21 +82,36 @@ test("Negative NO")
 processFail(["-1", "1", "1", "1"])
 test("NO not a number")
 processFail(["1a", "1", "1", "1"])
+test("Missing NO")
+processFail(["", "1", "1", "1"])
+
 test("Negative NH")
 processFail(["1", "-1", "1", "1"])
 test("NH not a number")
 processFail(["1", "1a", "1", "1"])
+test("Missing NH")
+processFail(["1", "", "1", "1"])
+
 test("Negative TI")
 processFail(["1", "1", "-1", "1"])
 test("Too big TI")
 processFail(["1", "1", "1001", "1"])
+test("TI not a number")
+processFail(["1", "1", "1a", "1"])
+test("Missing TI")
+processFail(["1", "1", "", "1"])
+
 test("Negative TB")
 processFail(["1", "1", "1", "-1"])
 test("Too big TB")
 processFail(["1", "1", "1", "1001"])
-
+test("TB not a number")
+processFail(["1", "1", "1", "1a"])
+test("Missing TB")
+processFail(["1", "1", "1", ""])
 
 note("Test script has finnished")
+note(f"Total of {testCnt} tests were run")
 
 if allPassed:
 	print(Fore.GREEN + "All test have passed!!! :)" + Fore.WHITE)
