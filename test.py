@@ -101,9 +101,11 @@ def processSucess(NO, NH, TI, TB):
 	else:
 		dataFile = open("proj2.out")
 		lineCnt = 0
+		moleculeCnt = 0
 		oarr = [0]*NO
 		harr = [0]*NH
 		for line in dataFile.readlines():
+			line = line.strip()
 			fields = line.split(": ")
 			if len(fields) != 3:
 				err("Wrong format of line (expected \"xxx: xxx: xxx\") got:")
@@ -132,6 +134,36 @@ def processSucess(NO, NH, TI, TB):
 				err(f"Too big id of atom (max is {len(arr)}, found {int(id)})")
 				note("Line: " + line)
 				continue
+			cmd = fields[2].split(" ")[0]
+			id = int(id)-1
+			if cmd == "started":
+				if fields[2] != "started":
+					err("Text should be \"started\", found \"{fields[2]}\"")
+					note("Line: " + line)
+				if arr[id] != 0:
+					err("Starting atom which was already started")
+					note("Line: " + line)
+					continue
+				arr[id] = 1
+			elif cmd == "going":
+				if arr[id] < 1:
+					err("Trying to put atom into queue, which wasn't started")
+					note("Line: " + line)
+					continue
+				if arr[id]>1:
+					err("Trying to put atom into queue, which was already in queue")
+					note("Line: " + line)
+					continue
+				arr[id] = 2
+			elif cmd == "creating":
+				pass
+			elif cmd == "molecule":
+				pass
+			elif cmd == "not":
+				pass
+			else:
+				err("Unknown action of atom")
+				note("Line: " + line)
 		dataFile.close()
 	proc.wait()
 	postclean()
