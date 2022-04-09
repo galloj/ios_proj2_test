@@ -53,7 +53,7 @@ note("Test script has started")
 
 if not exists("./proj2"):
 	err("Script has to be in same directory as ./proj2")
-
+	exit(1)
 
 def preclean():
 	os.system("pkill proj2")
