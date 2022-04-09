@@ -7,9 +7,13 @@ import os
 allPassed = True
 
 testCnt = 0
+testFailed = False
+testRunning = False
 
 def err(text):
 	global allPassed
+	global testFailed
+	testFailed = True
 	allPassed = False
 	print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)
 
@@ -20,9 +24,26 @@ def succ(text):
 	print("[" + Fore.GREEN + "OK" + Fore.WHITE + " ] " + text);
 
 def test(text):
+	global testFailed
 	global testCnt
+	global testRunning
+	testEnd()
+	testFailed = False
+	testRunning = True
 	testCnt+=1
 	note("Test for: " + text)
+	preclean()
+
+def testEnd():
+	global testFailed
+	global testRunning
+	if testRunning:
+		if testFailed:
+			err("Test failed")
+		else:
+			succ("Test passed")
+	testRunning = False
+	testFailed = False
 
 note("Test script has started")
 
@@ -31,42 +52,43 @@ if not exists("./proj2"):
 
 
 def preclean():
-	os.system("rm proj2.out")
+	os.system("pkill proj2")
+	os.system("rm proj2.out 2>/dev/null")
 
 def postclean():
-	failed = False
 	if "proj2" in subprocess.check_output(["ps"]).decode("utf-8"):
 		err("Proj2 is still running after process exited (unterminated childs)")
 		os.system("pkill proj2")
 		note("Proj2 is killed automatically now")
-		failed = True
-	return failed
 
 def processFail(params):
 	proc = subprocess.Popen(["./proj2"] + params, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-	failed = False
 	try:
 		outs, errs = proc.communicate(timeout=5)
 		if outs != "":
 			err("There shouldnt be any text on stdout")
-			failed = True
 		if errs.strip() == "":
 			err("Missing error output on stderr")
-			failed = True
 	except subprocess.TimeoutExpired:
 		proc.kill()
 		err("Process timed out")
 		postclean()
 		return
 	proc.wait()
-	failed |= postclean()
+	postclean()
 	if proc.returncode != 1:
 		err("Wrong return code, should be set to 1")
-		failed = True
-	if failed:
-		err("Test failed")
-	else:
-		succ("Test passed")
+
+def processSucess(params):
+	pass
+
+test("Makefile")
+if not exists("./Makefile"):
+	err("Makefile doesn't exists")
+else:
+	note("Automatically running make")
+	if os.system("make"):
+		err("Error while executing make")
 
 test("No arguments")
 processFail([])
@@ -110,6 +132,7 @@ processFail(["1", "1", "1", "1a"])
 test("Missing TB")
 processFail(["1", "1", "1", ""])
 
+testEnd()
 note("Test script has finnished")
 note(f"Total of {testCnt} tests were run")
 
