@@ -3,6 +3,7 @@ import subprocess
 from colorama import Fore
 from os.path import exists
 import os
+import sys
 
 allPassed = True
 
@@ -10,8 +11,10 @@ testCnt = 0
 failedCnt = 0
 testFailed = False
 testRunning = False
+showOut = False
 
 def err(text):
+
 	global allPassed
 	global testFailed
 	testFailed = True
@@ -45,8 +48,22 @@ def testEnd():
 			failedCnt += 1
 		else:
 			succ("Test passed")
+		if showOut and testFailed:
+			note("Printing ./proj2.out to terminal:")
+			if exists("./proj2.out"):
+				with open('./proj2.out', 'r') as f:
+					print(f.read())
+			else:
+				err("File ./proj2.out doesn't exists")
 	testRunning = False
 	testFailed = False
+
+for x in sys.argv[1:]:
+	if x=="--show-out":
+		showOut = True
+	else:
+		err(f"Unknown argument {x}")
+
 
 note("Test script has started")
 
@@ -155,14 +172,44 @@ def processSucess(NO, NH, TI, TB):
 					continue
 				arr[id] = 2
 			elif cmd == "creating":
-				pass
+				if arr[id] < 2:
+					err("Trying to create molecule with atom, which wasn't in queue")
+					note("Line: " + line)
+					continue
+				if arr[id] > 2:
+					err("Trying to create molecule with atom, which was already used to create molecle")
+					note("Line: " + line)
+				arr[id] = 3
 			elif cmd == "molecule":
-				pass
+				if arr[id] < 3:
+					err("Trying to finnish creation of molecule which hasn't yet started")
+					note("Line: " + line)
+					continue
+				if arr[id] > 3:
+					err("Trying to finnish creation of molecule which was already created")
+					note("Line: " + line)
+					continue
+				arr[id] = 4
 			elif cmd == "not":
-				pass
+				if arr[id] < 2:
+					err("Atom needs to be in queue before figuring out it can't make molecule")
+					note("Line: " + line)
+					continue
+				if arr[id] > 2:
+					err("Atom failed making molecule after it started")
+					note("Line: " + line)
+					continue
+				arr[id] = 4
 			else:
 				err("Unknown action of atom")
 				note("Line: " + line)
+		faults = ["wasn't started", "didn't went to queue", "didn't attempted to create molecule", "didn't finnished forming of molecule"]
+		for i, x in enumerate(oarr):
+			if x<4:
+				err(f"Oxygen {i+1} {faults[x]}")
+		for i, x in enumerate(harr):
+			if x<4:
+				err(f"Hydrogen {i+1} {faults[x]}")
 		dataFile.close()
 	proc.wait()
 	postclean()
@@ -219,8 +266,14 @@ processFail(["1", "1", "1", "1a"])
 test("Missing TB")
 processFail(["1", "1", "1", ""])
 
-test("Basic test (2, 1, 100, 100)")
-processSucess(2, 1, 100, 100)
+test("No atoms (0, 0, 100, 100)")
+processSucess(0, 0, 100, 100)
+
+test("Not enough of atoms for molecule (1, 1, 100, 100)")
+processSucess(1, 1, 100, 100)
+
+test("Creating one molecule (1, 2, 100, 100)")
+processSucess(1, 2, 100, 100)
 
 testEnd()
 note("Test script has finnished")
@@ -229,4 +282,6 @@ note(f"Total of {testCnt} tests were run, {failedCnt} failed")
 if allPassed:
 	print(Fore.GREEN + "All tests have passed!!! :)" + Fore.WHITE)
 else:
+	if not showOut:
+		note("You can try running the script as ./test.py --show-out to show ./proj2.out on failed tests")
 	print(Fore.RED + "Some tests have failed :(" + Fore.WHITE)
