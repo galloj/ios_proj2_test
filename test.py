@@ -162,6 +162,9 @@ def processSucess(NO, NH, TI, TB):
 					continue
 				arr[id] = 1
 			elif cmd == "going":
+				if fields[2] != "going to queue":
+					err(f"text should be \"going to queue\", found \"{fields[2]}\"")
+					note("Line: " + line)
 				if arr[id] < 1:
 					err("Trying to put atom into queue, which wasn't started")
 					note("Line: " + line)
@@ -224,6 +227,8 @@ else:
 	if os.system("make"):
 		err("Error while executing make")
 
+note("Following tests expect program to fail")
+
 test("No arguments")
 processFail([])
 test("Two arguments")
@@ -265,6 +270,9 @@ test("TB not a number")
 processFail(["1", "1", "1", "1a"])
 test("Missing TB")
 processFail(["1", "1", "1", ""])
+
+
+note("Following tests expect program to succeed")
 
 test("No atoms (0, 0, 100, 100)")
 processSucess(0, 0, 100, 100)
