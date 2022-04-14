@@ -194,6 +194,14 @@ def processSucess(NO, NH, TI, TB):
 					continue
 				arr[id] = 4
 			elif cmd == "not":
+				if type == "O":
+					if fields[2] != "not enough H":
+						err("Text should be \"not enough H\", found \"{fields[2]}\"")
+						note("Line: " + line)
+				else:
+					if fields[2] != "not enough O or H":
+						err("Text should be \"not enough O or H\", found \"{fields[2]}\"")
+						note("Line: " + line)
 				if arr[id] < 2:
 					err("Atom needs to be in queue before figuring out it can't make molecule")
 					note("Line: " + line)
