@@ -121,6 +121,7 @@ def processSucess(NO, NH, TI, TB):
 		moleculeH = [] # list of current hydrogens in molecule
 		oarr = [0]*NO
 		harr = [0]*NH
+		atomsUsed = 0
 		for line in dataFile.readlines():
 			lineCnt += 1
 			global lineError
@@ -178,9 +179,11 @@ def processSucess(NO, NH, TI, TB):
 				if arr[id] > 2:
 					err("Trying to create molecule with atom, which was already used to create molecle")
 					continue
+				atomsUsed += 1
+				if atomsUsed % 3 == 1:
+					moleculeCnt += 1
 				if not creatingMolecule:
 					creatingMolecule = True
-					moleculeCnt += 1
 				if fields[2] != f"creating molecule {moleculeCnt}":
 					err(f"Text should be \"creating molecule {moleculeCnt}\", found \"{fields[2]}\"")
 				if moleculeCreated:
