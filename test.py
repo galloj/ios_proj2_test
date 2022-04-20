@@ -12,13 +12,15 @@ failedCnt = 0
 testFailed = False
 testRunning = False
 showOut = False
+lineError = False
 
 def err(text):
-
+	global lineError
 	global allPassed
 	global testFailed
 	testFailed = True
 	allPassed = False
+	lineError = True
 	print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)
 
 def note(text):
@@ -48,13 +50,6 @@ def testEnd():
 			failedCnt += 1
 		else:
 			succ("Test passed")
-		if showOut and testFailed:
-			note("Printing ./proj2.out to terminal:")
-			if exists("./proj2.out"):
-				with open('./proj2.out', 'r') as f:
-					print(f.read())
-			else:
-				err("File ./proj2.out doesn't exists")
 	testRunning = False
 	testFailed = False
 
@@ -112,25 +107,30 @@ def processSucess(NO, NH, TI, TB):
 		err("Process timed out")
 		postclean()
 		return
+	wrongLines = []
 	if not exists("proj2.out"):
 		err("Missing file proj2.out")
 	else:
 		dataFile = open("proj2.out")
 		lineCnt = 0
 		moleculeCnt = 0
+		creatingMolecule = False
+		moleculeCreated = False
+		moleculeO = [] # list of current oxygens in molecule
+		moleculeH = [] # list of current hydrogens in molecule
 		oarr = [0]*NO
 		harr = [0]*NH
 		for line in dataFile.readlines():
+			lineCnt += 1
+			global lineError
+			lineError = False
 			line = line.strip()
 			fields = line.split(": ")
 			if len(fields) != 3:
 				err("Wrong format of line (expected \"xxx: xxx: xxx\") got:")
-				note(line)
 				break
-			lineCnt += 1
 			if fields[0] != str(lineCnt):
 				err(f"Wrong id of line, expected {lineCnt}")
-				note("Line: " + line)
 				break
 			if len(fields[1].split(" ")) != 2:
 				err(f"Expected atom type and id (ex. \"H 1\") got \"{fields[1]}\"")
@@ -144,76 +144,102 @@ def processSucess(NO, NH, TI, TB):
 				arr = harr
 			else:
 				err(f"Unknown atom type \"{type}\" (expected \"O\" or \"H\")")
-				note("Line: " + line)
 				continue
 			if int(id)>len(arr):
 				err(f"Too big id of atom (max is {len(arr)}, found {int(id)})")
-				note("Line: " + line)
+				continue
+			if int(id)<0:
+				err(f"Too small id of atom (min is 0, found {int(id)})")
 				continue
 			cmd = fields[2].split(" ")[0]
 			id = int(id)-1
 			if cmd == "started":
 				if fields[2] != "started":
 					err("Text should be \"started\", found \"{fields[2]}\"")
-					note("Line: " + line)
 				if arr[id] != 0:
 					err("Starting atom which was already started")
-					note("Line: " + line)
 					continue
 				arr[id] = 1
 			elif cmd == "going":
 				if fields[2] != "going to queue":
 					err(f"text should be \"going to queue\", found \"{fields[2]}\"")
-					note("Line: " + line)
 				if arr[id] < 1:
 					err("Trying to put atom into queue, which wasn't started")
-					note("Line: " + line)
 					continue
 				if arr[id]>1:
 					err("Trying to put atom into queue, which was already in queue")
-					note("Line: " + line)
 					continue
 				arr[id] = 2
 			elif cmd == "creating":
 				if arr[id] < 2:
 					err("Trying to create molecule with atom, which wasn't in queue")
-					note("Line: " + line)
 					continue
 				if arr[id] > 2:
 					err("Trying to create molecule with atom, which was already used to create molecle")
-					note("Line: " + line)
+					continue
+				if not creatingMolecule:
+					creatingMolecule = True
+					moleculeCnt += 1
+				if fields[2] != f"creating molecule {moleculeCnt}":
+					err(f"Text should be \"creating molecule {moleculeCnt}\", found \"{fields[2]}\"")
+				if moleculeCreated:
+					err("Trying to join molecule when molecule was already created")
+				if type == "O":
+					moleculeO.append(id)
+					if len(moleculeO) > 1:
+						err("Too much of oxygens is trying to create same molecule")
+				else:
+					moleculeH.append(id)
+					if len(moleculeH) > 2:
+						err("Too much of hydrogens is trying to create same molecule")
+				if len(moleculeO) == 1 and len(moleculeH) == 2:
+					moleculeCreated = True
 				arr[id] = 3
 			elif cmd == "molecule":
 				if arr[id] < 3:
 					err("Trying to finnish creation of molecule which hasn't yet started")
-					note("Line: " + line)
 					continue
 				if arr[id] > 3:
 					err("Trying to finnish creation of molecule which was already created")
-					note("Line: " + line)
 					continue
+				if fields[2] != f"molecule {moleculeCnt} created":
+					err(f"Text should be \"molecule {moleculeCnt} created\", found \"{fields[2]}\"")
+				if type == "O":
+					if id not in moleculeO:
+						err("Atom is trying to finnish creating of molecule which it isn't inside of")
+					else:
+						moleculeO.remove(id)
+				else:
+					if id not in moleculeH:
+						err("Atom is trying to finnish creating of molecule which it isn't inside of")
+					else:
+						moleculeH.remove(id)
+				if not moleculeCreated:
+					err("Trying to finnish creating of molecule, before all atoms started creating molecule")
+				if len(moleculeO) == 0 and len(moleculeH) == 0:
+					moleculeCreated = False
+					creatingMolecule = False
 				arr[id] = 4
 			elif cmd == "not":
 				if type == "O":
 					if fields[2] != "not enough H":
 						err("Text should be \"not enough H\", found \"{fields[2]}\"")
-						note("Line: " + line)
 				else:
 					if fields[2] != "not enough O or H":
 						err("Text should be \"not enough O or H\", found \"{fields[2]}\"")
-						note("Line: " + line)
 				if arr[id] < 2:
 					err("Atom needs to be in queue before figuring out it can't make molecule")
-					note("Line: " + line)
 					continue
 				if arr[id] > 2:
 					err("Atom failed making molecule after it started")
-					note("Line: " + line)
 					continue
 				arr[id] = 4
 			else:
 				err("Unknown action of atom")
+			if lineError:
+				lineError = False
 				note("Line: " + line)
+				wrongLines.append(lineCnt)
 		faults = ["wasn't started", "didn't went to queue", "didn't attempted to create molecule", "didn't finnished forming of molecule"]
 		for i, x in enumerate(oarr):
 			if x<4:
@@ -223,9 +249,20 @@ def processSucess(NO, NH, TI, TB):
 				err(f"Hydrogen {i+1} {faults[x]}")
 		dataFile.close()
 	proc.wait()
-	postclean()
 	if proc.returncode != 0:
 		err("Wrong return code, should be set to 0")
+	if showOut and testFailed:
+			note("Printing ./proj2.out to terminal:")
+			if exists("./proj2.out"):
+				with open('./proj2.out', 'r') as f:
+					for i, line in enumerate(f.readlines()):
+						if i+1 in wrongLines:
+							print(end=Fore.RED)
+						print(end=line)
+						print(end=Fore.WHITE)
+			else:
+				err("File ./proj2.out doesn't exists")
+	postclean()
 
 test("Makefile")
 if not exists("./Makefile"):
@@ -290,6 +327,12 @@ processSucess(1, 1, 100, 100)
 
 test("Creating one molecule (1, 2, 100, 100)")
 processSucess(1, 2, 100, 100)
+
+test("Test from assigment (3, 5, 100, 100)")
+processSucess(3, 5, 100, 100)
+
+test("Stress test (100, 100, 100, 100)")
+processSucess(100, 100, 100, 100)
 
 testEnd()
 note("Test script has finnished")
