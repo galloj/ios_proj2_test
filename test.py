@@ -95,6 +95,7 @@ def processFail(params):
 		err("Wrong return code, should be set to 1")
 
 def processSucess(NO, NH, TI, TB):
+	expectedMoleculeCnt = min(NO, NH//2)
 	proc = subprocess.Popen(["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
 		outs, errs = proc.communicate(timeout=5)
@@ -233,6 +234,8 @@ def processSucess(NO, NH, TI, TB):
 				if arr[id] > 2:
 					err("Atom failed making molecule after it started")
 					continue
+				if moleculeCnt != expectedMoleculeCnt:
+					err("Atoms shouldn't report not enough of other atoms, before all molecules are created")
 				arr[id] = 4
 			else:
 				err("Unknown action of atom")
@@ -240,7 +243,6 @@ def processSucess(NO, NH, TI, TB):
 				lineError = False
 				note("Line: " + line)
 				wrongLines.append(lineCnt)
-		expectedMoleculeCnt = min(NO, NH//2)
 		if moleculeCnt != expectedMoleculeCnt:
 			err(f"Wrong amount of molecules created: found {moleculeCnt}, expected {expectedMoleculeCnt}")
 		faults = ["wasn't started", "didn't went to queue", "didn't attempted to create molecule", "didn't finnished forming of molecule"]
