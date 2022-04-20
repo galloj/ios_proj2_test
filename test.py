@@ -240,6 +240,9 @@ def processSucess(NO, NH, TI, TB):
 				lineError = False
 				note("Line: " + line)
 				wrongLines.append(lineCnt)
+		expectedMoleculeCnt = min(NO, NH//2)
+		if moleculeCnt != expectedMoleculeCnt:
+			err(f"Wrong amount of molecules created: found {moleculeCnt}, expected {expectedMoleculeCnt}")
 		faults = ["wasn't started", "didn't went to queue", "didn't attempted to create molecule", "didn't finnished forming of molecule"]
 		for i, x in enumerate(oarr):
 			if x<4:
