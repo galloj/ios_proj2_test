@@ -67,8 +67,8 @@ for x in sys.argv[1:]:
 
 note("Test script has started")
 
-if not exists("./proj2"):
-	err("Script has to be in same directory as ./proj2")
+if not exists("./proj2") and not exists("./Makefile"):
+	err("Script has to be in same directory as ./proj2 or ./Makefile")
 	exit(1)
 
 def preclean():
