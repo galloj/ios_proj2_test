@@ -295,7 +295,9 @@ def processSucess(NO, NH, TI, TB):
 		if len(sleepTimes) > 10 and min(TI, TB) > 40:
 			maxNoRand = max([sleepTimes.count(x), x] for x in {*sleepTimes})
 			if maxNoRand[0] > len(sleepTimes)/3:
-				err(f"Low entropy of randomnes found: {maxNoRand[0]} of {len(sleepTimes)} had value {maxNoRand[1]//1000}us")
+				err(f"Low entropy of randomnes found: {maxNoRand[0]} of {len(sleepTimes)} sleeps had value {maxNoRand[1]//1000}us")
+		if any(x//1000000>max(TI, TB) for x in sleepTimes):
+			err("Found longer length of sleep than value of TI and TB")
 	if showOut and testFailed:
 			note("Printing ./proj2.out to terminal:")
 			if exists("./proj2.out"):
