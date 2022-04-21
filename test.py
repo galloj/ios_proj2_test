@@ -121,6 +121,8 @@ def processSucess(NO, NH, TI, TB):
 		moleculeH = [] # list of current hydrogens in molecule
 		oarr = [0]*NO
 		harr = [0]*NH
+		omol = [0]*NO
+		hmol = [0]*NH
 		atomsUsed = 0
 		for line in dataFile.readlines():
 			lineCnt += 1
@@ -189,10 +191,12 @@ def processSucess(NO, NH, TI, TB):
 				if moleculeCreated:
 					err("Trying to join molecule when molecule was already created")
 				if type == "O":
+					omol[id] = moleculeCnt
 					moleculeO.append(id)
 					if len(moleculeO) > 1:
 						err("Too much of oxygens is trying to create same molecule")
 				else:
+					hmol[id] = moleculeCnt
 					moleculeH.append(id)
 					if len(moleculeH) > 2:
 						err("Too much of hydrogens is trying to create same molecule")
@@ -206,20 +210,27 @@ def processSucess(NO, NH, TI, TB):
 				if arr[id] > 3:
 					err("Trying to finnish creation of molecule which was already created")
 					continue
-				if fields[2] != f"molecule {moleculeCnt} created":
-					err(f"Text should be \"molecule {moleculeCnt} created\", found \"{fields[2]}\"")
+				emid = -1
 				if type == "O":
-					if id not in moleculeO:
-						err("Atom is trying to finnish creating of molecule which it isn't inside of")
-					else:
-						moleculeO.remove(id)
+					emid = omol[id]
 				else:
-					if id not in moleculeH:
-						err("Atom is trying to finnish creating of molecule which it isn't inside of")
-					else:
-						moleculeH.remove(id)
-				if not moleculeCreated:
-					err("Trying to finnish creating of molecule, before all atoms started creating molecule")
+					emid = hmol[id]
+				if fields[2] != f"molecule {emid} created":
+					err(f"Text should be \"molecule {emid} created\", found \"{fields[2]}\"")
+				if type == "O":
+					if id in moleculeO:
+						if not moleculeCreated:
+							err("Not all atoms joined molecule before \"molecule created\" messages started appearing")
+						else:
+							moleculeO = []
+							moleculeH = []
+				else:
+					if id in moleculeH:
+						if not moleculeCreated:
+							err("Not all atoms joined molecule before \"molecule created\" messages started appearing")
+						else:
+							moleculeO = []
+							moleculeH = []
 				if len(moleculeO) == 0 and len(moleculeH) == 0:
 					moleculeCreated = False
 					creatingMolecule = False
