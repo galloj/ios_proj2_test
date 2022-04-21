@@ -69,6 +69,7 @@ if not exists("./proj2") and not exists("./Makefile"):
 def preclean():
 	os.system("pkill proj2")
 	os.system("rm proj2.out 2>/dev/null")
+	os.system("rm proj2.out.strace 2>/dev/null")
 
 def postclean():
 	if "proj2" in subprocess.check_output(["ps"]).decode("utf-8"):
@@ -96,7 +97,7 @@ def processFail(params):
 
 def processSucess(NO, NH, TI, TB):
 	expectedMoleculeCnt = min(NO, NH//2)
-	proc = subprocess.Popen(["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace", "./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
 		outs, errs = proc.communicate(timeout=5)
 		if outs != "":
@@ -270,6 +271,31 @@ def processSucess(NO, NH, TI, TB):
 	proc.wait()
 	if proc.returncode != 0:
 		err("Wrong return code, should be set to 0")
+
+	if not exists("proj2.out.strace"):
+		note("Missing file proj2.out.strace - not performing strace checks")
+	else:
+		dataFile = open("proj2.out.strace")
+		forks = 0
+		sleeps = 0
+		sleepTimes = []
+		for line in dataFile.readlines():
+			if "clone" in line and "resumed" not in line:
+				forks += 1
+			if "nanosleep" in line and "resumed" not in line:
+				sleeps += 1
+			if "nanosleep" in line and "tv_nsec=" in line:
+				sleepTimes.append(int(line.split("tv_nsec=")[1].split("}")[0]))
+		if forks != NO+NH:
+			err(f"Wrong amount of forks: expected {NO+NH}, found {forks}")
+		if sleeps != NO+NH+expectedMoleculeCnt:
+			err(f"Wrong amount of sleeps: expected {NO+NH+expectedMoleculeCnt}, found {sleeps}")
+		if any(x%1000000 != 0 for x in sleepTimes):
+			err("Sleeps should be in miliseconds, but found some in microseconds")
+		if len(sleepTimes) > 10 and min(TI, TB) > 40:
+			maxNoRand = max([sleepTimes.count(x), x] for x in {*sleepTimes})
+			if maxNoRand[0] > len(sleepTimes)/3:
+				err(f"Low entropy of randomnes found: {maxNoRand[0]} of {len(sleepTimes)} had value {maxNoRand[1]//1000}us")
 	if showOut and testFailed:
 			note("Printing ./proj2.out to terminal:")
 			if exists("./proj2.out"):
