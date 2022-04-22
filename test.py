@@ -76,6 +76,10 @@ def postclean():
 		err("Proj2 is still running after process exited (unterminated childs)")
 		os.system("pkill proj2")
 		note("Proj2 is killed automatically now")
+	os.popen("""ipcs -ts | grep "$(whoami)" 2>/dev/null | awk '{print $1};' 2>/dev/null | xargs -L1 ipcrm -s 2>/dev/null""").read()
+	os.popen("""find /dev/shm -user "$(whoami)" -delete 2>/dev/null""").read()
+	os.popen("""find /dev/shm/* -user "$(whoami)" -delete 2>/dev/null""").read()
+	os.popen("""ipcs -tm | grep "$(whoami)" 2>/dev/null | awk '{print $1};' 2>/dev/null | xargs -L1 ipcrm -m 2>/dev/null""").read()
 
 def processFail(params):
 	proc = subprocess.Popen(["./proj2"] + params, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
