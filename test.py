@@ -5,6 +5,9 @@ from os.path import exists
 import os
 import sys
 
+timeout = 10
+timeouted = False
+
 allPassed = True
 
 testCnt = 0
@@ -53,11 +56,17 @@ def testEnd():
 	testRunning = False
 	testFailed = False
 
-for x in sys.argv[1:]:
+argvInd = 1
+while argvInd < len(sys.argv):
+	x = sys.argv[argvInd]
 	if x=="--show-out":
 		showOut = True
+	elif x=="--timeout":
+		argvInd+=1
+		timeout = int(sys.argv[argvInd])
 	else:
 		err(f"Unknown argument {x}")
+	argvInd+=1
 
 
 note("Test script has started")
@@ -84,12 +93,14 @@ def postclean():
 def processFail(params):
 	proc = subprocess.Popen(["./proj2"] + params, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
-		outs, errs = proc.communicate(timeout=5)
+		outs, errs = proc.communicate(timeout=timeout)
 		if outs != "":
 			err("There shouldnt be any text on stdout")
 		if errs.strip() == "":
 			err("Missing error output on stderr")
 	except subprocess.TimeoutExpired:
+		global timeouted
+		timeouted=True
 		proc.kill()
 		err("Process timed out")
 		postclean()
@@ -103,12 +114,14 @@ def processSucess(NO, NH, TI, TB):
 	expectedMoleculeCnt = min(NO, NH//2)
 	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace", "./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
-		outs, errs = proc.communicate(timeout=5)
+		outs, errs = proc.communicate(timeout=timeout)
 		if outs != "":
 			err("There shouldnt be any text on stdout")
 		if errs != "":
 			err("There shouldnt be any errors on stderr")
 	except subprocess.TimeoutExpired:
+		global timeouted
+		timeouted=True
 		proc.kill()
 		err("Process timed out")
 		postclean()
@@ -367,11 +380,10 @@ processFail(["1", "1", "1", "1a"])
 test("Missing TB")
 processFail(["1", "1", "1", ""])
 
+test("No atoms (0, 0, 100, 100)")
+processFail(["0", "0", "100", "100"])
 
 note("Following tests expect program to succeed")
-
-test("No atoms (0, 0, 100, 100)")
-processSucess(0, 0, 100, 100)
 
 test("Not enough of atoms for molecule (1, 1, 100, 100)")
 processSucess(1, 1, 100, 100)
@@ -379,11 +391,24 @@ processSucess(1, 1, 100, 100)
 test("Creating one molecule (1, 2, 100, 100)")
 processSucess(1, 2, 100, 100)
 
+test("Maximal sleep (1, 2, 1000, 1000)")
+processSucess(1, 2, 1000, 1000)
+
+test("Minimal sleep (1, 2, 0, 0)")
+processSucess(1, 2, 0, 0)
+
 test("Test from assigment (3, 5, 100, 100)")
 processSucess(3, 5, 100, 100)
 
-test("Stress test (100, 100, 100, 100)")
+test("Stress test 1 (100, 100, 100, 100)")
 processSucess(100, 100, 100, 100)
+
+test("Stress test 2 (150, 50, 100, 100)")
+processSucess(150, 50, 100, 100)
+
+test("Stress test 3 (50, 150, 100, 100)")
+processSucess(50, 150, 100, 100)
+
 
 testEnd()
 note("Test script has finnished")
@@ -392,6 +417,8 @@ note(f"Total of {testCnt} tests were run, {failedCnt} failed")
 if allPassed:
 	print(Fore.GREEN + "All tests have passed!!! :)" + Fore.WHITE)
 else:
+	if timeouted:
+		note("You can try running the script as ./test.py --timeout 999 to increase timeout of process (value in seconds)")
 	if not showOut:
 		note("You can try running the script as ./test.py --show-out to show ./proj2.out on failed tests")
 	print(Fore.RED + "Some tests have failed :(" + Fore.WHITE)
