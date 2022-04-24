@@ -71,6 +71,10 @@ while argvInd < len(sys.argv):
 
 note("Test script has started")
 
+if os.system("which strace >/dev/null") != 0:
+	err("Program strace is reguired dependency, please install it using \"sudo apt install strace\"")
+	exit(1)
+
 if not exists("./proj2") and not exists("./Makefile"):
 	err("Script has to be in same directory as ./proj2 or ./Makefile")
 	exit(1)
