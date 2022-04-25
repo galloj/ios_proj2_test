@@ -16,18 +16,29 @@ testFailed = False
 testRunning = False
 showOut = False
 lineError = False
+isTestError = False
+testErrorCount = 0
+
+maxTestErrorCount = 15
 
 def err(text):
 	global lineError
 	global allPassed
 	global testFailed
+	global testErrorCount
 	testFailed = True
 	allPassed = False
 	lineError = True
-	print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)
+	if not isTestError or testErrorCount < maxTestErrorCount:
+		print("[" + Fore.RED + "ERR" + Fore.WHITE + "] " + text)
+	if isTestError:
+		if testErrorCount == maxTestErrorCount:
+			note("Reached maximum number of errors to display, showing no more")
+		testErrorCount += 1
 
-def note(text):
-	print("[ " + Fore.CYAN + "*" + Fore.WHITE + " ] " + text)
+def note(text,ignorable=False):
+	if not ignorable or not isTestError or testErrorCount < maxTestErrorCount:
+		print("[ " + Fore.CYAN + "*" + Fore.WHITE + " ] " + text)
 
 def succ(text):
 	print("[" + Fore.GREEN + "OK" + Fore.WHITE + " ] " + text);
@@ -36,7 +47,11 @@ def test(text):
 	global testFailed
 	global testCnt
 	global testRunning
+	global isTestError
+	global testErrorCount
+	testErrorCount = 0
 	testEnd()
+	isTestError = True
 	testFailed = False
 	testRunning = True
 	testCnt+=1
@@ -47,6 +62,8 @@ def testEnd():
 	global testFailed
 	global testRunning
 	global failedCnt
+	global isTestError
+	isTestError = False
 	if testRunning:
 		if testFailed:
 			err("Test failed")
@@ -151,7 +168,7 @@ def processSucess(NO, NH, TI, TB):
 		for line in dataFile.readlines():
 			lineCnt += 1
 			global lineError
-			lineError = False
+			lineError = True
 			line = line.strip()
 			fields = line.split(": ")
 			if len(fields) != 3:
@@ -279,7 +296,7 @@ def processSucess(NO, NH, TI, TB):
 				err("Unknown action of atom")
 			if lineError:
 				lineError = False
-				note("Line: " + line)
+				note("Line: " + line, True)
 				wrongLines.append(lineCnt)
 		if moleculeCnt != expectedMoleculeCnt:
 			err(f"Wrong amount of molecules created: found {moleculeCnt}, expected {expectedMoleculeCnt}")
