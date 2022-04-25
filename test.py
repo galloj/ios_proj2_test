@@ -166,9 +166,13 @@ def processSucess(NO, NH, TI, TB):
 		hmol = [0]*NH
 		atomsUsed = 0
 		for line in dataFile.readlines():
+			prevLine=line
 			lineCnt += 1
 			global lineError
-			lineError = True
+			if lineError:
+				note("Line: " + prevLine, True)
+				wrongLines.append(lineCnt-1)
+			lineError = False
 			line = line.strip()
 			fields = line.split(": ")
 			if len(fields) != 3:
