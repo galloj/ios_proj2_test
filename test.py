@@ -56,6 +56,8 @@ def testEnd():
 	testRunning = False
 	testFailed = False
 
+useStrace=1
+
 argvInd = 1
 while argvInd < len(sys.argv):
 	x = sys.argv[argvInd]
@@ -72,8 +74,8 @@ while argvInd < len(sys.argv):
 note("Test script has started")
 
 if os.system("which strace >/dev/null") != 0:
-	err("Program strace is reguired dependency, please install it using \"sudo apt install strace\"")
-	exit(1)
+	err("Program strace is recommended dependency, please install it using \"sudo apt install strace\"")
+	useStrace = 0
 
 if not exists("./proj2") and not exists("./Makefile"):
 	err("Script has to be in same directory as ./proj2 or ./Makefile")
@@ -116,7 +118,7 @@ def processFail(params):
 
 def processSucess(NO, NH, TI, TB):
 	expectedMoleculeCnt = min(NO, NH//2)
-	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace", "./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace"]*useStrace + ["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
 		outs, errs = proc.communicate(timeout=timeout)
 		if outs != "":
@@ -294,7 +296,8 @@ def processSucess(NO, NH, TI, TB):
 		err("Wrong return code, should be set to 0")
 
 	if not exists("proj2.out.strace"):
-		note("Missing file proj2.out.strace - not performing strace checks")
+		if useStrace:
+			note("Missing file proj2.out.strace - not performing strace checks")
 	else:
 		dataFile = open("proj2.out.strace")
 		forks = 0
@@ -404,6 +407,9 @@ processSucess(1, 2, 0, 0)
 test("Test from assigment (3, 5, 100, 100)")
 processSucess(3, 5, 100, 100)
 
+test("One additional hydrogen and oxygen (2, 3, 0, 0)")
+processSucess(2, 3, 0, 0)
+
 test("Stress test 1 (100, 100, 100, 100)")
 processSucess(100, 100, 100, 100)
 
@@ -412,6 +418,9 @@ processSucess(150, 50, 100, 100)
 
 test("Stress test 3 (50, 150, 100, 100)")
 processSucess(50, 150, 100, 100)
+
+test("Stress test 4 (100, 101, 0, 0)")
+processSucess(100, 101, 0, 0)
 
 
 testEnd()
