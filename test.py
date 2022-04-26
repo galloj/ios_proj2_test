@@ -51,7 +51,7 @@ def test(text):
 	global testErrorCount
 	testErrorCount = 0
 	testEnd()
-	isTestError = True
+	isTestError = False
 	testFailed = False
 	testRunning = True
 	testCnt+=1
@@ -168,10 +168,11 @@ def processSucess(NO, NH, TI, TB):
 		omol = [0]*NO
 		hmol = [0]*NH
 		atomsUsed = 0
+		global lineError
+		lineError = False
 		for line in dataFile.readlines():
 			prevLine=line
 			lineCnt += 1
-			global lineError
 			if lineError:
 				note("Line: " + prevLine, True)
 				wrongLines.append(lineCnt-1)
