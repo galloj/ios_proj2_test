@@ -83,6 +83,8 @@ while argvInd < len(sys.argv):
 	elif x=="--timeout":
 		argvInd+=1
 		timeout = int(sys.argv[argvInd])
+	elif x=="--no-strace":
+		useStrace = 0
 	else:
 		err(f"Unknown argument {x}")
 	argvInd+=1
