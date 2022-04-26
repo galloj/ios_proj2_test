@@ -147,6 +147,9 @@ def processSucess(NO, NH, TI, TB):
 		timeouted=True
 		proc.kill()
 		err("Process timed out")
+		if showOut:
+			note("Printing output file before process was killed")
+			print(open("proj2.out").read())
 		postclean()
 		return
 	wrongLines = []
