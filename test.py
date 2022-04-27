@@ -92,6 +92,14 @@ while argvInd < len(sys.argv):
 
 note("Test script has started")
 
+pkillSwitch = ""
+
+if os.system("which id >/dev/null") != 0:
+	note("Missing id command, test might try to kill processes from other users")
+else:
+	uid = int(os.popen("id -u").read())
+	pkillSwitch = f"-U {uid}"
+
 if os.system("which strace >/dev/null") != 0:
 	err("Program strace is recommended dependency, please install it using \"sudo apt install strace\"")
 	useStrace = 0
@@ -101,14 +109,14 @@ if not exists("./proj2") and not exists("./Makefile"):
 	exit(1)
 
 def preclean():
-	os.system("pkill proj2")
+	os.system(f"pkill {pkillSwitch} proj2")
 	os.system("rm proj2.out 2>/dev/null")
 	os.system("rm proj2.out.strace 2>/dev/null")
 
 def postclean():
 	if "proj2" in subprocess.check_output(["ps"]).decode("utf-8"):
 		err("Proj2 is still running after process exited (unterminated childs)")
-		os.system("pkill proj2")
+		os.system(f"pkill {pkillSwitch} proj2")
 		note("Proj2 is killed automatically now")
 	os.popen("""ipcs -ts | grep "$(whoami)" 2>/dev/null | awk '{print $1};' 2>/dev/null | xargs -L1 ipcrm -s 2>/dev/null""").read()
 	os.popen("""find /dev/shm -user "$(whoami)" -delete 2>/dev/null""").read()
