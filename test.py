@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 import subprocess
-from colorama import Fore
+try:
+	from colorama import Fore
+except:
+	print("!!! Missing colorama, it is recommended to install it !!!")
+	class Fore:
+		RED=""
+		WHITE=""
+		CYAN=""
+		GREEN=""
 from os.path import exists
 import os
 import sys
