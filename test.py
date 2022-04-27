@@ -5,10 +5,11 @@ try:
 except:
 	print("!!! Missing colorama, it is recommended to install it !!!")
 	class Fore:
-		RED=""
-		WHITE=""
-		CYAN=""
-		GREEN=""
+		RED="\x1b[31m"
+		WHITE="\x1b[37m"
+		CYAN="\x1b[36m"
+		GREEN="\x1b[32m"
+		BLUE="\x1b[34m"
 from os.path import exists
 import os
 import sys
