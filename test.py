@@ -350,6 +350,8 @@ def processSucess(NO, NH, TI, TB):
 		for line in dataFile.readlines():
 			if "clone" in line and "resumed" not in line:
 				forks += 1
+			if "clone" in line and "ERESTARTNOINTR" in line:
+				forks -= 1
 			if "nanosleep" in line and "resumed" not in line:
 				sleeps += 1
 			if "nanosleep" in line and "tv_nsec=" in line:
