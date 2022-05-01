@@ -83,6 +83,7 @@ def testEnd():
 	testFailed = False
 
 useStrace=1
+runStressTests=32 # run them all by default
 
 argvInd = 1
 while argvInd < len(sys.argv):
@@ -94,6 +95,14 @@ while argvInd < len(sys.argv):
 		timeout = int(sys.argv[argvInd])
 	elif x=="--no-strace":
 		useStrace = 0
+	elif x=="--stress-tests":
+		try:
+			runStressTests = int(sys.argv[(argvInd := argvInd + 1)])
+		except:
+			err("Invalid number of stress tests: " + sys.argv[argvInd])
+			exit(1)
+	elif x=="--no-stress-tests":
+		runStressTests = 0
 	else:
 		err(f"Unknown argument {x}")
 	argvInd+=1
@@ -456,23 +465,29 @@ processSucess(3, 5, 100, 100)
 test("One additional hydrogen and oxygen (2, 3, 0, 0)")
 processSucess(2, 3, 0, 0)
 
-test("Stress test 0 (30, 30, 30, 30)")
-processSucess(30, 30, 30, 30)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 0 (30, 30, 30, 30)")
+	processSucess(30, 30, 30, 30)
 
-test("Stress test 1 (100, 100, 30, 30)")
-processSucess(100, 100, 30, 30)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 1 (100, 100, 30, 30)")
+	processSucess(100, 100, 30, 30)
 
-test("Stress test 2 (150, 50, 30, 30)")
-processSucess(150, 50, 30, 30)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 2 (150, 50, 30, 30)")
+	processSucess(150, 50, 30, 30)
 
-test("Stress test 3 (50, 150, 30, 30)")
-processSucess(50, 150, 30, 30)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 3 (50, 150, 30, 30)")
+	processSucess(50, 150, 30, 30)
 
-test("Stress test 4 (100, 101, 0, 0)")
-processSucess(100, 101, 0, 0)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 4 (100, 101, 0, 0)")
+	processSucess(100, 101, 0, 0)
 
-test("Stress test 5 (1000, 1001, 0, 0)")
-processSucess(100, 101, 0, 0)
+if (runStressTests := runStressTests - 1) >= 0:
+	test("Stress test 5 (1000, 1001, 0, 0)")
+	processSucess(100, 101, 0, 0)
 
 
 testEnd()
