@@ -456,6 +456,9 @@ processSucess(3, 5, 100, 100)
 test("One additional hydrogen and oxygen (2, 3, 0, 0)")
 processSucess(2, 3, 0, 0)
 
+test("Stress test 0 (30, 30, 30, 30)")
+processSucess(30, 30, 30, 30)
+
 test("Stress test 1 (100, 100, 30, 30)")
 processSucess(100, 100, 30, 30)
 
