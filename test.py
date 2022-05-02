@@ -3,7 +3,6 @@ import subprocess
 try:
 	from colorama import Fore
 except:
-	print("!!! Missing colorama, it is recommended to install it !!!")
 	class Fore:
 		RED="\x1b[31m"
 		WHITE="\x1b[37m"
@@ -154,13 +153,30 @@ def processFail(params):
 
 def processSucess(NO, NH, TI, TB):
 	expectedMoleculeCnt = min(NO, NH//2)
+	resourceFail = False
 	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace"]*useStrace + ["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
+		proc.wait()
+		if exists("proj2.out.strace"):
+			dataFile = open("proj2.out.strace")
+			for line in dataFile.readlines():
+				if "clone" in line and "EAGAIN" in line:
+					resourceFail = True
+					note("Found failed fork")
+					break
 		outs, errs = proc.communicate(timeout=timeout)
+		if resourceFail:
+			if errs.strip() == "":
+				err("Missing error output on stderr")
+			if proc.returncode != 1:
+				err("Wrong process return code, expected 1")
+			return
 		if outs != "":
 			err("There shouldnt be any text on stdout")
 		if errs != "":
 			err("There shouldnt be any errors on stderr")
+		if proc.returncode != 0:
+			err("Wrong return code, expected 0")
 	except subprocess.TimeoutExpired:
 		global timeouted
 		timeouted=True
@@ -335,9 +351,6 @@ def processSucess(NO, NH, TI, TB):
 			if x<4:
 				err(f"Hydrogen {i+1} {faults[x]}")
 		dataFile.close()
-	proc.wait()
-	if proc.returncode != 0:
-		err("Wrong return code, should be set to 0")
 
 	if not exists("proj2.out.strace"):
 		if useStrace:
