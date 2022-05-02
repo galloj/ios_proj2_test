@@ -157,13 +157,32 @@ def processSucess(NO, NH, TI, TB):
 	proc = subprocess.Popen(["strace", "-f", "-o", "proj2.out.strace"]*useStrace + ["./proj2", str(NO), str(NH), str(TI), str(TB)], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	try:
 		proc.wait()
+		files_opened_proj2 = 0
+		files_opened = 0
+		files_closed = 0
+		forks = 0
 		if exists("proj2.out.strace"):
 			dataFile = open("proj2.out.strace")
 			for line in dataFile.readlines():
-				if "clone" in line and "EAGAIN" in line:
+				if "clone" in line and "EAGAIN" in line and not resourceFail:
 					resourceFail = True
 					note("Found failed fork")
-					break
+				if "open" in line and "resumed" not in line:
+					files_opened += 1
+					if "proj2" in line:
+						files_opened_proj2 += 1
+				if "close" in line and "resumed" not in line:
+					files_closed += 1
+				if "clone" in line and "resumed" not in line:
+					forks += 1
+				if "clone" in line and "ERESTARTNOINTR" in line or "clone" in line and "EAGAIN" in line:
+					forks -= 1
+		if files_opened_proj2 == 1 and files_closed != files_opened + forks and NO + NH != 1:
+			err(f"There are {files_opened + forks - files_closed} files which weren't closed")
+			note("This check found single proj2 open call - rest are calculated form forks")
+		if files_opened_proj2 != 1 and files_opened != files_closed:
+			err(f"There are {files_opened - files_closed} files which weren't closed")
+			note("This check found multiple proj2 open calls - guessing that no fds were forked")
 		outs, errs = proc.communicate(timeout=timeout)
 		if resourceFail:
 			if errs.strip() == "":
