@@ -469,19 +469,25 @@ processSucess(3, 5, 100, 100)
 test("One additional hydrogen and oxygen (2, 3, 0, 0)")
 processSucess(2, 3, 0, 0)
 
-test("Stress test 1 (100, 100, 30, 30)")
+test("Stress test 1 (30, 30, 30, 30)")
+processSucess(30, 30, 30, 30)
+
+test("Stress test 2 (30, 30, 0, 0)")
+processSucess(30, 30, 0, 0)
+
+test("Stress test 3 (100, 100, 30, 30)")
 processSucess(100, 100, 30, 30)
 
-test("Stress test 2 (150, 50, 30, 30)")
+test("Stress test 4 (150, 50, 30, 30)")
 processSucess(150, 50, 30, 30)
 
-test("Stress test 3 (50, 150, 30, 30)")
+test("Stress test 5 (50, 150, 30, 30)")
 processSucess(50, 150, 30, 30)
 
-test("Stress test 4 (100, 101, 0, 0)")
+test("Stress test 6 (100, 101, 0, 0)")
 processSucess(100, 101, 0, 0)
 
-test("Stress test 5 (1000, 1001, 0, 0)")
+test("Stress test 7 (1000, 1001, 0, 0)")
 processSucess(100, 101, 0, 0)
 
 
