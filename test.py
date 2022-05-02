@@ -179,7 +179,7 @@ def processSucess(NO, NH, TI, TB):
 					forks -= 1
 		if files_opened_proj2 == 1 and files_closed != files_opened + forks and NO + NH != 1:
 			err(f"There are {files_opened + forks - files_closed} files which weren't closed")
-			note("This check found single proj2 open call - rest are calculated form forks")
+			note("This check found single proj2 open call - rest are calculated from forks")
 		if files_opened_proj2 != 1 and files_opened != files_closed:
 			err(f"There are {files_opened - files_closed} files which weren't closed")
 			note("This check found multiple proj2 open calls - guessing that no fds were forked")
