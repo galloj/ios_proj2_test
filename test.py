@@ -507,7 +507,7 @@ test("Stress test 6 (100, 101, 0, 0)")
 processSucess(100, 101, 0, 0)
 
 test("Stress test 7 (1000, 1001, 0, 0)")
-processSucess(100, 101, 0, 0)
+processSucess(1000, 1001, 0, 0)
 
 
 testEnd()
