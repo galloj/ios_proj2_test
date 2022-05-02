@@ -123,7 +123,7 @@ def preclean():
 
 def postclean():
 	if "proj2" in subprocess.check_output(["ps"]).decode("utf-8"):
-		err("Proj2 is still running after process exited (unterminated childs)")
+		err("Proj2 is still running after process exited (unterminated children)")
 		os.system(f"pkill {pkillSwitch} proj2")
 		note("Proj2 is killed automatically now")
 	os.popen("""ipcs -ts | grep "$(whoami)" 2>/dev/null | awk '{print $1};' 2>/dev/null | xargs -L1 ipcrm -s 2>/dev/null""").read()
@@ -136,7 +136,7 @@ def processFail(params):
 	try:
 		outs, errs = proc.communicate(timeout=timeout)
 		if outs != "":
-			err("There shouldnt be any text on stdout")
+			err("There shouldn't be any text on stdout")
 		if errs.strip() == "":
 			err("Missing error output on stderr")
 	except subprocess.TimeoutExpired:
@@ -191,9 +191,9 @@ def processSucess(NO, NH, TI, TB):
 				err("Wrong process return code, expected 1")
 			return
 		if outs != "":
-			err("There shouldnt be any text on stdout")
+			err("There shouldn't be any text on stdout")
 		if errs != "":
-			err("There shouldnt be any errors on stderr")
+			err("There shouldn't be any errors on stderr")
 		if proc.returncode != 0:
 			err("Wrong return code, expected 0")
 	except subprocess.TimeoutExpired:
@@ -269,7 +269,7 @@ def processSucess(NO, NH, TI, TB):
 				arr[id] = 1
 			elif cmd == "going":
 				if fields[2] != "going to queue":
-					err(f"text should be \"going to queue\", found \"{fields[2]}\"")
+					err(f"Text should be \"going to queue\", found \"{fields[2]}\"")
 				if arr[id] < 1:
 					err("Trying to put atom into queue, which wasn't started")
 					continue
@@ -282,7 +282,7 @@ def processSucess(NO, NH, TI, TB):
 					err("Trying to create molecule with atom, which wasn't in queue")
 					continue
 				if arr[id] > 2:
-					err("Trying to create molecule with atom, which was already used to create molecle")
+					err("Trying to create molecule with atom, which was already used to create molecule")
 					continue
 				atomsUsed += 1
 				if atomsUsed % 3 == 1:
@@ -297,21 +297,21 @@ def processSucess(NO, NH, TI, TB):
 					omol[id] = moleculeCnt
 					moleculeO.append(id)
 					if len(moleculeO) > 1:
-						err("Too much of oxygens is trying to create same molecule")
+						err("Too many oxygens are trying to create the same molecule")
 				else:
 					hmol[id] = moleculeCnt
 					moleculeH.append(id)
 					if len(moleculeH) > 2:
-						err("Too much of hydrogens is trying to create same molecule")
+						err("Too many hydrogens are trying to create the same molecule")
 				if len(moleculeO) == 1 and len(moleculeH) == 2:
 					moleculeCreated = True
 				arr[id] = 3
 			elif cmd == "molecule":
 				if arr[id] < 3:
-					err("Trying to finnish creation of molecule which hasn't yet started")
+					err("Trying to finish creation of molecule which hasn't yet started")
 					continue
 				if arr[id] > 3:
-					err("Trying to finnish creation of molecule which was already created")
+					err("Trying to finish creation of molecule which was already created")
 					continue
 				emid = -1
 				if type == "O":
@@ -362,7 +362,7 @@ def processSucess(NO, NH, TI, TB):
 				wrongLines.append(lineCnt)
 		if moleculeCnt != expectedMoleculeCnt:
 			err(f"Wrong amount of molecules created: found {moleculeCnt}, expected {expectedMoleculeCnt}")
-		faults = ["wasn't started", "didn't went to queue", "didn't attempted to create molecule", "didn't finnished forming of molecule"]
+		faults = ["wasn't started", "didn't go to queue", "didn't attempt to create molecule", "didn't finish forming of molecule"]
 		for i, x in enumerate(oarr):
 			if x<4:
 				err(f"Oxygen {i+1} {faults[x]}")
@@ -410,12 +410,12 @@ def processSucess(NO, NH, TI, TB):
 						print(end=line)
 						print(end=Fore.WHITE)
 			else:
-				err("File ./proj2.out doesn't exists")
+				err("File ./proj2.out doesn't exist")
 	postclean()
 
 test("Makefile")
 if not exists("./Makefile"):
-	err("Makefile doesn't exists")
+	err("Makefile doesn't exist")
 else:
 	note("Automatically running make")
 	if os.system("make"):
@@ -511,7 +511,7 @@ processSucess(100, 101, 0, 0)
 
 
 testEnd()
-note("Test script has finnished")
+note("Test script has finished")
 note(f"Total of {testCnt} tests were run, {failedCnt} failed")
 
 if allPassed:
